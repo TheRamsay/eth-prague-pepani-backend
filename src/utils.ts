@@ -7,7 +7,7 @@ export const parseJsonToModel = <T>(query: QueryResponse): T => {
     return JSON.parse(query.Ok) as T;
 }
 
-export async function getVotingPower(voterAddress: string, spaceId: number): Promise<bigint> {
+export async function getVotingPower(voterAddress: string, spaceId: number, blockHeight: bigint | string): Promise<bigint> {
     const res = await actor.get_all_evm_strategies_by_space_id({ id: spaceId }) as QueryResponse;
     const strategies = parseJsonToModel<GetEvmStrategy[]>(res);
 
@@ -16,7 +16,7 @@ export async function getVotingPower(voterAddress: string, spaceId: number): Pro
     console.log(strategies);
 
     for (const strategy of strategies) {
-        power += await callStrategy(voterAddress, strategy);
+        power += await callStrategy(voterAddress, strategy, blockHeight);
     }
 
     return power;
@@ -31,4 +31,20 @@ export async function callStrategy(voterAddress: string, strategy: GetEvmStrateg
     })
 
     return BigInt(result);
+}
+
+export async function triggerEvent(spaceId: number, eventType: number, eventData: object) {
+    // const events = actor.get_events_by_space_id({ id: spaceId, eventType: eventType });
+
+    // for (const event of events) {
+    //     fetch(event.url, {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-Type": "application/json"
+    //         },
+    //         body: event.
+    //     });
+    // }
+
+
 }

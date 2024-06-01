@@ -31,7 +31,13 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
         return;
     }
 
-    const power = await getVotingPower(req.body.message.voterAddress, req.body.message.spaceId);
+    let blockHeight: bigint | string = "latest";
+
+    if (req.body.message.blockHeight) {
+        blockHeight = BigInt(req.body.message.blockHeight);
+    }
+
+    const power = await getVotingPower(req.body.message.voterAddress, req.body.message.spaceId, blockHeight);
 
     console.log("Voting power: ", power);
 
@@ -58,10 +64,13 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
 app.get("/api/power", async (req: Request<{}, {}, {}>, res) => {
     let voterAddress = req.query.voterAddress as string;
     let spaceId = +(req.query.spaceId as string);
+    let blockHeight = req.query.blockHeight as string ?? "latest";
 
-    let power = await getVotingPower(voterAddress, spaceId);
+    let power = await getVotingPower(voterAddress, spaceId, blockHeight);
     res.json({ votingPower: power.toString() });
 });
+
+// app.post()
 
 const port = 3000;
 app.listen(port, () => {

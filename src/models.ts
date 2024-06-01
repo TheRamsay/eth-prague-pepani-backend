@@ -14,6 +14,7 @@ export type VoteMessage = {
     proposalId: number;
     spaceId: number;
     proposalOptionId: number;
+    blockHeight: string | null;
 }
 
 export type VoteData = {

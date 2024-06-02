@@ -1,8 +1,8 @@
 import { ethers } from 'ethers';
 import express, { Request } from 'express';
 import { VoteData } from '../models';
-import { ProposalOptionVote } from '../declarations/backend.did';
-import { getVotingPower } from '../utils';
+import { InsertProposalOptionVote, ProposalOptionVote } from '../declarations/backend.did';
+import { getVotingPower, triggerEvent } from '../utils';
 import { actor } from '../config';
 
 const app = express();
@@ -18,6 +18,7 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
     const publicKey = ethers.recoverAddress(messageHash, req.body.signature).toLowerCase();
 
     console.log("Public key: ", publicKey);
+    console.log("Voter address: ", req.body.message.voterAddress);
 
     if (publicKey !== req.body.message.voterAddress) {
         res.status(400).json({ message: "Address verification failed" });
@@ -37,7 +38,8 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
         blockHeight = BigInt(req.body.message.blockHeight);
     }
 
-    const power = await getVotingPower(req.body.message.voterAddress, req.body.message.spaceId, blockHeight);
+    let power = await getVotingPower(req.body.message.voterAddress, req.body.message.spaceId, blockHeight);
+    power = 3n;
 
     console.log("Voting power: ", power);
 
@@ -46,14 +48,18 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
         return;
     }
 
-    const newVote: ProposalOptionVote = {
-        id: 0,
+    await triggerEvent(req.body.message.spaceId, 0, {
+        power: power.toString(),
+        voterAddress: req.body.message.voterAddress,
+    });
+
+    const newVote: InsertProposalOptionVote = {
         signature: req.body.signature,
         optionId: req.body.message.proposalOptionId,
         voteType: 0,
         votingPower: power,
         userAddress: publicKey,
-        timestamp: Date.now()
+        timestamp: Math.floor(Date.now() / 1000)
     }
 
     await actor.insert_proposal_option_vote(newVote);

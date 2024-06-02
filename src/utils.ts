@@ -1,6 +1,6 @@
 import { BlockTag } from "ethers";
 import { actor, blockchainClient } from "./config";
-import { GetEvmStrategy } from "./declarations/backend.did";
+import { GetEvmStrategy, SpaceEvent } from "./declarations/backend.did";
 import { QueryResponse } from "./models";
 
 export const parseJsonToModel = <T>(query: QueryResponse): T => {
@@ -34,17 +34,27 @@ export async function callStrategy(voterAddress: string, strategy: GetEvmStrateg
 }
 
 export async function triggerEvent(spaceId: number, eventType: number, eventData: object) {
-    // const events = actor.get_events_by_space_id({ id: spaceId, eventType: eventType });
+    const events = parseJsonToModel<SpaceEvent[]>(await actor.get_all_space_events_by_space_id({ id: spaceId }) as QueryResponse);
 
-    // for (const event of events) {
-    //     fetch(event.url, {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json"
-    //         },
-    //         body: event.
-    //     });
-    // }
+    for (const event of events) {
 
+        if (event.eventtype !== eventType) {
+            continue;
+        }
+
+        let payload = event.payload;
+        for (const key in eventData) {
+            //@ts-ignore
+            payload = payload.replace(`$\{${key}\}`, eventData[key]);
+        }
+
+        await fetch(event.webhookUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: payload
+        });
+    }
 
 }

@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
-import { makeActor } from "./service/actor-locator";
-import { createActor } from "./declarations";
+import { makeBackendActor, makeEvmActor } from "./service/actor-locator";
 
 require('dotenv').config();
 
@@ -20,5 +19,5 @@ Object.keys(process.env)
         blockchainClients[+chainId] = new ethers.JsonRpcProvider(process.env[key]!);
     });
 
-// export const blockchainClient = new ethers.JsonRpcProvider(process.env.CHAIN!)
-export const actor = makeActor("fbzua-hiaaa-aaaag-albxa-cai", createActor);
+export const backendActor = makeBackendActor();
+export const evmActor = makeEvmActor();

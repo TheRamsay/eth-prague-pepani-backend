@@ -1,9 +1,12 @@
 import { ethers } from 'ethers';
 import express, { Request } from 'express';
 import { VoteData } from '../models';
-import { InsertProposalOptionVote, ProposalOptionVote } from '../declarations/backend.did';
-import { getVotingPower, triggerEvent } from '../utils';
-import { actor } from '../config';
+import { InsertProposalOptionVote, ProposalOptionVote } from '../declarations/backend/backend.did';
+import { encodeTransaction, getVotingPower, triggerEvent } from '../utils';
+import { backendActor } from '../config';
+import { makeEvmActor } from '../service/actor-locator';
+import { ic } from 'azle';
+import { managementCanister } from 'azle/canisters/management';
 
 const app = express();
 
@@ -56,7 +59,7 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
         timestamp: Math.floor(Date.now() / 1000)
     }
 
-    await actor.insert_proposal_option_vote(newVote);
+    await backendActor.insert_proposal_option_vote(newVote);
 
     res.json({ message: publicKey === req.body.message.voterAddress ? "Success" : "Failed" });
 });
@@ -68,6 +71,27 @@ app.get("/api/power", async (req: Request<{}, {}, {}>, res) => {
 
     let power = await getVotingPower(voterAddress, spaceId, blockHeight);
     res.json({ votingPower: power.toString() });
+});
+
+
+app.get("/au", async (req: Request<{}, {}, {}>, res) => {
+
+    // ethers.Transaction.from({
+    //     to
+    // })
+    // const a = await makeEvmActor();
+    // a.eth_sendRawTransaction()
+
+    // const x = await ic.call(managementCanister.ecdsa_public_key, {args: [
+    //     {
+    //         // canister_id: [],
+    //         // method_name: "ecdsa_public_key",
+    //     }
+    // ]});
+
+    // console.log(x);
+
+    res.json({ message: "Ahoj pepo" });
 });
 
 // app.post()

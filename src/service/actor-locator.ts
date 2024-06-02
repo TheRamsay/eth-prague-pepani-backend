@@ -1,20 +1,26 @@
 import {
   createActor as createBackendActor,
   canisterId as backendCanisterId
-} from "../declarations";
+} from "../declarations/backend";
 
-export const makeActor = (
-  canisterId: string,
-  createActor: typeof createBackendActor
-) => {
-  return createActor(canisterId, {
+import {
+  createActor as createEvmActor,
+  canisterId as evmCanisterId
+} from "../declarations/evm_rpc";
+
+
+export function makeBackendActor() {
+  return createBackendActor(process.env.CANISTER_ID!, {
     agentOptions: {
-      host: process.env.NEXT_PUBLIC_IC_HOST 
+      host: process.env.NEXT_PUBLIC_IC_HOST
     }
   })
 }
 
-export function makeBackendActor() {
-  const canisterId = process.env.CANISTER_ID
-  return makeActor(canisterId ?? '', createBackendActor)
+export function makeEvmActor() {
+  return createEvmActor("7hfb6-caaaa-aaaar-qadga-cai", {
+    agentOptions: {
+      host: process.env.NEXT_PUBLIC_IC_HOST
+    }
+  })
 }

@@ -17,6 +17,24 @@ export type VoteMessage = {
     blockHeight: string | null;
 }
 
+
+export type EventData = {
+    eventType: number;
+    webhookUrl: string;
+    payload: string;
+    spaceId: number;
+}
+
+export type InsertSpace = {
+    websiteLink : string,
+    name : string,
+    minVoteRole : number,
+    iconLink : string,
+    voteDuration : number,
+    voteDelay : number,
+    minVotePower : bigint,
+    quorum : number,
+  }
 export type VoteData = {
     signature: string;
     message: VoteMessage;

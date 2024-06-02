@@ -1,9 +1,10 @@
 import { ethers } from 'ethers';
 import express, { Request } from 'express';
-import { QueryResponse, VoteData } from '../models';
-import { GetBtcStrategy, GetEvmStrategy, InsertProposalOptionVote, Proposal, ProposalOption, ProposalOptionVote, Space, SpaceEvent } from '../declarations/backend.did';
+import { EventData, InsertSpace, QueryResponse, VoteData } from '../models';
+import { GetBtcStrategy, GetEvmStrategy, InsertProposal, InsertProposalOption, InsertProposalOptionVote, Proposal, ProposalOption, ProposalOptionVote, Space, SpaceEvent } from '../declarations/backend.did';
 import { getVotingPower, parseJsonToModel, triggerEvent } from '../utils';
 import { actor } from '../config';
+import e from 'express';
 
 const app = express();
 
@@ -11,6 +12,59 @@ app.use(express.json());
 
 app.get('/', (_req, res) => {
     res.json("{ message: 'Ahoj pepo' }");
+});
+
+app.post("/api/event", async (req: Request<{}, {}, EventData>, res) => {
+    const query = await actor.insert_space_event({
+        id: 0,
+        eventtype: req.body.eventType,
+        spaceId: req.body.spaceId,
+        payload: req.body.payload,
+        webhookUrl: req.body.webhookUrl
+    }) as QueryResponse;
+
+    if (query.Ok) {
+        res.json({ message: "JJ" });
+    }
+    res.json({ message: "NE", error: query });
+
+});
+
+app.post("/api/proposal", async (req: Request<{}, {}, InsertProposal>, res) => {
+    const query = await actor.insert_proposal(req.body) as QueryResponse;
+    if (query.Ok) {
+        res.json({ message: "JJ" });
+    }
+    res.json({ message: "NE", error: query });
+
+});
+
+app.post("/api/proposal/option", async (req: Request<{}, {}, InsertProposalOption>, res) => {
+    const query = await actor.insert_proposal_option(req.body) as QueryResponse;
+    if (query.Ok) {
+        res.json({ message: "JJ" });
+    }
+    res.json({ message: "NE", error: query });
+
+});
+
+app.post("/api/space", async (req: Request<{}, {}, InsertSpace>, res) => {
+    const query = await actor.insert_space({
+        id: 0,
+        websiteLink: req.body.websiteLink,
+        name: req.body.name,
+        minVoteRole: req.body.minVoteRole,
+        iconLink: req.body.iconLink,
+        voteDuration: req.body.voteDuration,
+        voteDelay: req.body.voteDelay,
+        minVotePower: req.body.minVotePower,
+        quorum: req.body.quorum
+    }) as QueryResponse;
+
+    if (query.Ok) {
+        res.json({ message: "JJ" });
+    }
+    res.json({ message: "NE", error: query });
 });
 
 app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
@@ -77,92 +131,92 @@ app.get("/api/power", async (req: Request<{}, {}, {}>, res) => {
 });
 
 app.get("/api/spaces", async (req: Request<{}, {}, {}>, res) => {
-    const query = await actor.query_all_spaces({limit:99999, offset:0}) as QueryResponse;
+    const query = await actor.query_all_spaces({ limit: 99999, offset: 0 }) as QueryResponse;
 
     const spaces = parseJsonToModel<Space[]>(query);
 
-    
+
     res.json(spaces);
 });
 
 app.get("/api/spaces/:id", async (req, res) => {
     const id = req.params.id
-    const query = await actor.query_spaces_by_id({id: +id}) as QueryResponse;
+    const query = await actor.query_spaces_by_id({ id: +id }) as QueryResponse;
 
     const spaces = parseJsonToModel<Space>(query);
 
-    
+
     res.json(spaces);
 });
 
 app.get("/api/spaces/:id/proposals", async (req, res) => {
     const id = req.params.id
-    const query = await actor.query_proposals_by_space_id({id: +id}) as QueryResponse;
+    const query = await actor.query_proposals_by_space_id({ id: +id }) as QueryResponse;
 
     const spaces = parseJsonToModel<Proposal[]>(query);
 
-    
+
     res.json(spaces);
 });
 
 app.get("/api/spaces/:id/events", async (req, res) => {
     const id = req.params.id
-    const query = await actor.get_all_space_events_by_space_id({id: +id}) as QueryResponse;
+    const query = await actor.get_all_space_events_by_space_id({ id: +id }) as QueryResponse;
 
     const events = parseJsonToModel<SpaceEvent[]>(query);
 
-    
+
     res.json(events);
 });
 
 app.get("/api/spaces/:id/evm", async (req, res) => {
     const id = req.params.id
-    const query = await actor.get_all_evm_strategies_by_space_id({id: +id}) as QueryResponse;
+    const query = await actor.get_all_evm_strategies_by_space_id({ id: +id }) as QueryResponse;
 
     const events = parseJsonToModel<GetEvmStrategy[]>(query);
 
-    
+
     res.json(events);
 });
 
 app.get("/api/spaces/:id/btc", async (req, res) => {
     const id = req.params.id
-    const query = await actor.get_all_btc_strategies_by_space_id({id: +id}) as QueryResponse;
+    const query = await actor.get_all_btc_strategies_by_space_id({ id: +id }) as QueryResponse;
 
     const events = parseJsonToModel<GetBtcStrategy[]>(query);
 
-    
+
     res.json(events);
 });
 
 
-app.get("/api/proposals/:id", async  (req, res) => {
+app.get("/api/proposals/:id", async (req, res) => {
     const id = req.params.id
 
-    const query = await actor.query_proposal_by_id({id: +id}) as QueryResponse;
+    const query = await actor.query_proposal_by_id({ id: +id }) as QueryResponse;
 
     const spaces = parseJsonToModel<Proposal>(query);
-    
+
     res.json(spaces);
 });
 
-app.get("/api/proposals/:id/votes", async  (req, res) => {
+app.get("/api/proposals/:id/votes", async (req, res) => {
     const id = req.params.id
 
-    const query = await actor.get_proposal_votes_by_proposal_id({id: +id}) as QueryResponse;
+    const query = await actor.get_proposal_votes_by_proposal_id({ id: +id }) as QueryResponse;
 
     const spaces = parseJsonToModel<ProposalOptionVote[]>(query);
-    
+
     res.json(spaces);
 });
 
-app.get("/api/proposals/:id/options", async  (req, res) => {
+app.get("/api/proposals/:id/options", async (req, res) => {
     const id = req.params.id
 
-    const query = await actor.get_proposal_options_by_proposal_id({id: +id}) as QueryResponse;
+    const query = await actor.get_proposal_options_by_proposal_id({ id: +id }) as QueryResponse;
 
     const spaces = parseJsonToModel<ProposalOption[]>(query);
-    
+
     res.json(spaces);
 });
 
@@ -171,7 +225,7 @@ app.get("/apievents", async (req, res) => {
 
     const events = parseJsonToModel<SpaceEvent[]>(query);
 
-    
+
     res.json(events);
 });
 

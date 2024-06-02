@@ -7,6 +7,10 @@ import { backendActor } from '../config';
 import { makeEvmActor } from '../service/actor-locator';
 import { ic } from 'azle';
 import { managementCanister } from 'azle/canisters/management';
+import { QueryResponse, VoteData } from '../models';
+import { GetBtcStrategy, GetEvmStrategy, InsertProposalOptionVote, Proposal, ProposalOption, ProposalOptionVote, Space, SpaceEvent } from '../declarations/backend.did';
+import { getVotingPower, parseJsonToModel, triggerEvent } from '../utils';
+import { actor } from '../config';
 
 const app = express();
 
@@ -19,6 +23,9 @@ app.get('/', (_req, res) => {
 app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
     const messageHash = ethers.hashMessage(JSON.stringify(req.body.message));
     const publicKey = ethers.recoverAddress(messageHash, req.body.signature).toLowerCase();
+
+    console.log("Public key: ", publicKey);
+    console.log("Voter address: ", req.body.message.voterAddress);
 
     if (publicKey !== req.body.message.voterAddress) {
         res.status(400).json({ message: "Address verification failed" });
@@ -39,6 +46,9 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
     }
 
     let power = await getVotingPower(req.body.message.voterAddress, req.body.message.spaceId, blockHeight);
+    power = 3n;
+
+    console.log("Voting power: ", power);
 
     if (power <= 0n) {
         res.status(400).json({ message: "Not enough voting power" });
@@ -73,7 +83,6 @@ app.get("/api/power", async (req: Request<{}, {}, {}>, res) => {
     res.json({ votingPower: power.toString() });
 });
 
-
 app.get("/au", async (req: Request<{}, {}, {}>, res) => {
 
     // ethers.Transaction.from({
@@ -92,6 +101,105 @@ app.get("/au", async (req: Request<{}, {}, {}>, res) => {
     // console.log(x);
 
     res.json({ message: "Ahoj pepo" });
+});
+
+app.get("/api/spaces", async (req: Request<{}, {}, {}>, res) => {
+    const query = await actor.query_all_spaces({limit:99999, offset:0}) as QueryResponse;
+
+    const spaces = parseJsonToModel<Space[]>(query);
+
+    
+    res.json(spaces);
+});
+
+app.get("/api/spaces/:id", async (req, res) => {
+    const id = req.params.id
+    const query = await actor.query_spaces_by_id({id: +id}) as QueryResponse;
+
+    const spaces = parseJsonToModel<Space>(query);
+
+    
+    res.json(spaces);
+});
+
+app.get("/api/spaces/:id/proposals", async (req, res) => {
+    const id = req.params.id
+    const query = await actor.query_proposals_by_space_id({id: +id}) as QueryResponse;
+
+    const spaces = parseJsonToModel<Proposal[]>(query);
+
+    
+    res.json(spaces);
+});
+
+app.get("/api/spaces/:id/events", async (req, res) => {
+    const id = req.params.id
+    const query = await actor.get_all_space_events_by_space_id({id: +id}) as QueryResponse;
+
+    const events = parseJsonToModel<SpaceEvent[]>(query);
+
+    
+    res.json(events);
+});
+
+app.get("/api/spaces/:id/evm", async (req, res) => {
+    const id = req.params.id
+    const query = await actor.get_all_evm_strategies_by_space_id({id: +id}) as QueryResponse;
+
+    const events = parseJsonToModel<GetEvmStrategy[]>(query);
+
+    
+    res.json(events);
+});
+
+app.get("/api/spaces/:id/btc", async (req, res) => {
+    const id = req.params.id
+    const query = await actor.get_all_btc_strategies_by_space_id({id: +id}) as QueryResponse;
+
+    const events = parseJsonToModel<GetBtcStrategy[]>(query);
+
+    
+    res.json(events);
+});
+
+
+app.get("/api/proposals/:id", async  (req, res) => {
+    const id = req.params.id
+
+    const query = await actor.query_proposal_by_id({id: +id}) as QueryResponse;
+
+    const spaces = parseJsonToModel<Proposal>(query);
+    
+    res.json(spaces);
+});
+
+app.get("/api/proposals/:id/votes", async  (req, res) => {
+    const id = req.params.id
+
+    const query = await actor.get_proposal_votes_by_proposal_id({id: +id}) as QueryResponse;
+
+    const spaces = parseJsonToModel<ProposalOptionVote[]>(query);
+    
+    res.json(spaces);
+});
+
+app.get("/api/proposals/:id/options", async  (req, res) => {
+    const id = req.params.id
+
+    const query = await actor.get_proposal_options_by_proposal_id({id: +id}) as QueryResponse;
+
+    const spaces = parseJsonToModel<ProposalOption[]>(query);
+    
+    res.json(spaces);
+});
+
+app.get("/apievents", async (req, res) => {
+    const query = await actor.get_all_space_events() as QueryResponse;
+
+    const events = parseJsonToModel<SpaceEvent[]>(query);
+
+    
+    res.json(events);
 });
 
 // app.post()

@@ -17,9 +17,6 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
     const messageHash = ethers.hashMessage(JSON.stringify(req.body.message));
     const publicKey = ethers.recoverAddress(messageHash, req.body.signature).toLowerCase();
 
-    console.log("Public key: ", publicKey);
-    console.log("Voter address: ", req.body.message.voterAddress);
-
     if (publicKey !== req.body.message.voterAddress) {
         res.status(400).json({ message: "Address verification failed" });
         return;
@@ -39,9 +36,6 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
     }
 
     let power = await getVotingPower(req.body.message.voterAddress, req.body.message.spaceId, blockHeight);
-    power = 3n;
-
-    console.log("Voting power: ", power);
 
     if (power <= 0n) {
         res.status(400).json({ message: "Not enough voting power" });

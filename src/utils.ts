@@ -1,5 +1,5 @@
 import { BlockTag } from "ethers";
-import { actor, blockchainClient } from "./config";
+import { actor, blockchainClients } from "./config";
 import { GetEvmStrategy, SpaceEvent } from "./declarations/backend.did";
 import { QueryResponse } from "./models";
 
@@ -13,8 +13,6 @@ export async function getVotingPower(voterAddress: string, spaceId: number, bloc
 
     let power = 0n;
 
-    console.log(strategies);
-
     for (const strategy of strategies) {
         power += await callStrategy(voterAddress, strategy, blockHeight);
     }
@@ -23,7 +21,9 @@ export async function getVotingPower(voterAddress: string, spaceId: number, bloc
 }
 
 export async function callStrategy(voterAddress: string, strategy: GetEvmStrategy, blockHeight: BigInt | string = "latest"): Promise<bigint> {
-    const result = await blockchainClient.call({
+    const x = strategy.chainId;
+    //@ts-ignore
+    const result = await blockchainClients[Number(x)].call({
         chainId: strategy.chainId,
         to: strategy.contractAddress,
         blockTag: blockHeight as BlockTag,

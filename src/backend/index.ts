@@ -1,8 +1,8 @@
 import { ethers } from 'ethers';
 import express, { Request } from 'express';
-import { VoteData } from '../models';
-import { InsertProposalOptionVote, ProposalOptionVote } from '../declarations/backend.did';
-import { getVotingPower, triggerEvent } from '../utils';
+import { QueryResponse, VoteData } from '../models';
+import { InsertProposalOptionVote, Proposal, ProposalOption, ProposalOptionVote, Space } from '../declarations/backend.did';
+import { getVotingPower, parseJsonToModel, triggerEvent } from '../utils';
 import { actor } from '../config';
 
 const app = express();
@@ -16,6 +16,9 @@ app.get('/', (_req, res) => {
 app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
     const messageHash = ethers.hashMessage(JSON.stringify(req.body.message));
     const publicKey = ethers.recoverAddress(messageHash, req.body.signature).toLowerCase();
+
+    console.log("Public key: ", publicKey);
+    console.log("Voter address: ", req.body.message.voterAddress);
 
     if (publicKey !== req.body.message.voterAddress) {
         res.status(400).json({ message: "Address verification failed" });
@@ -36,6 +39,9 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
     }
 
     let power = await getVotingPower(req.body.message.voterAddress, req.body.message.spaceId, blockHeight);
+    power = 3n;
+
+    console.log("Voting power: ", power);
 
     if (power <= 0n) {
         res.status(400).json({ message: "Not enough voting power" });
@@ -68,6 +74,65 @@ app.get("/api/power", async (req: Request<{}, {}, {}>, res) => {
 
     let power = await getVotingPower(voterAddress, spaceId, blockHeight);
     res.json({ votingPower: power.toString() });
+});
+
+app.get("/api/spaces", async (req: Request<{}, {}, {}>, res) => {
+    const query = await actor.query_all_spaces({limit:99999, offset:0}) as QueryResponse;
+
+    const spaces = parseJsonToModel<Space[]>(query);
+
+    
+    res.json(spaces);
+});
+
+app.get("/api/spaces/:id", async (req, res) => {
+    const id = req.params.id
+    const query = await actor.query_spaces_by_id({id: +id}) as QueryResponse;
+
+    const spaces = parseJsonToModel<Space>(query);
+
+    
+    res.json(spaces);
+});
+
+app.get("/api/spaces/:id/proposals", async (req, res) => {
+    const id = req.params.id
+    const query = await actor.query_proposals_by_space_id({id: +id}) as QueryResponse;
+
+    const spaces = parseJsonToModel<Proposal[]>(query);
+
+    
+    res.json(spaces);
+});
+
+app.get("/api/proposals/:id", async  (req, res) => {
+    const id = req.params.id
+
+    const query = await actor.query_proposal_by_id({id: +id}) as QueryResponse;
+
+    const spaces = parseJsonToModel<Proposal>(query);
+    
+    res.json(spaces);
+});
+
+app.get("/api/proposals/:id/votes", async  (req, res) => {
+    const id = req.params.id
+
+    const query = await actor.get_proposal_votes_by_proposal_id({id: +id}) as QueryResponse;
+
+    const spaces = parseJsonToModel<ProposalOptionVote[]>(query);
+    
+    res.json(spaces);
+});
+
+app.get("/api/proposals/:id/options", async  (req, res) => {
+    const id = req.params.id
+
+    const query = await actor.get_proposal_options_by_proposal_id({id: +id}) as QueryResponse;
+
+    const spaces = parseJsonToModel<ProposalOption[]>(query);
+    
+    res.json(spaces);
 });
 
 // app.post()

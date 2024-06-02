@@ -30,7 +30,7 @@ app.get("/", (_req, res) => {
   res.json("{ message: 'Ahoj pepo' }");
 });
 
-app.post("/api/event", async (req: Request<{}, {}, EventData>, res) => {
+app.post("/event", async (req: Request<{}, {}, EventData>, res) => {
   const query = (await backendActor.insert_space_event({
     id: 0,
     eventtype: req.body.eventType,
@@ -45,7 +45,7 @@ app.post("/api/event", async (req: Request<{}, {}, EventData>, res) => {
   res.json({ message: "NE", error: query });
 });
 
-app.post("/api/proposal", async (req: Request<{}, {}, InsertProposal>, res) => {
+app.post("/proposal", async (req: Request<{}, {}, InsertProposal>, res) => {
   const query = (await backendActor.insert_proposal({
     ...req.body,
     dateCreated: Math.floor(Date.now() / 1000),
@@ -65,7 +65,7 @@ app.post("/api/proposal", async (req: Request<{}, {}, InsertProposal>, res) => {
 });
 
 app.post(
-  "/api/proposal/option",
+  "/proposal/option",
   async (req: Request<{}, {}, InsertProposalOption>, res) => {
     const query = (await backendActor.insert_proposal_option(
       req.body
@@ -77,7 +77,7 @@ app.post(
   }
 );
 
-app.post("/api/space", async (req: Request<{}, {}, InsertSpace>, res) => {
+app.post("/space", async (req: Request<{}, {}, InsertSpace>, res) => {
   const query = (await backendActor.insert_space({
     id: 0,
     websiteLink: req.body.websiteLink,
@@ -96,7 +96,7 @@ app.post("/api/space", async (req: Request<{}, {}, InsertSpace>, res) => {
   res.json({ message: "NE", error: query });
 });
 
-app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
+app.post("/vote", async (req: Request<{}, {}, VoteData>, res) => {
   console.log(req.body);
 
   const messageHash = ethers.hashMessage(JSON.stringify(req.body.message));
@@ -161,7 +161,7 @@ app.post("/api/vote", async (req: Request<{}, {}, VoteData>, res) => {
   });
 });
 
-app.get("/api/power", async (req: Request<{}, {}, {}>, res) => {
+app.get("/power", async (req: Request<{}, {}, {}>, res) => {
   let address = req.query.address as string;
   let spaceId = +(req.query.spaceId as string);
   let blockHeight = (req.query.blockHeight as string) ?? "latest";
@@ -189,18 +189,17 @@ app.get("/au", async (req: Request<{}, {}, {}>, res) => {
   res.json({ message: "Ahoj pepo" });
 });
 
-app.get("/api/spaces", async (req: Request<{}, {}, {}>, res) => {
+app.get("/spaces", async (req: Request<{}, {}, {}>, res) => {
   const query = (await backendActor.query_all_spaces({
     limit: 99999,
     offset: 0,
   })) as QueryResponse;
-
   const spaces = parseJsonToModel<Space[]>(query);
 
-  res.json(spaces);
+  return res.json(spaces);
 });
 
-app.get("/api/spaces/:id", async (req, res) => {
+app.get("/spaces/:id", async (req, res) => {
   const id = req.params.id;
   const query = (await backendActor.query_spaces_by_id({
     id: +id,
@@ -211,7 +210,7 @@ app.get("/api/spaces/:id", async (req, res) => {
   res.json(spaces);
 });
 
-app.get("/api/spaces/:id/proposals", async (req, res) => {
+app.get("/spaces/:id/proposals", async (req, res) => {
   const id = req.params.id;
   const query = (await backendActor.query_proposals_by_space_id({
     id: +id,
@@ -222,7 +221,7 @@ app.get("/api/spaces/:id/proposals", async (req, res) => {
   res.json(spaces);
 });
 
-app.get("/api/spaces/:id/events", async (req, res) => {
+app.get("/spaces/:id/events", async (req, res) => {
   const id = req.params.id;
   const query = (await backendActor.get_all_space_events_by_space_id({
     id: +id,
@@ -233,7 +232,7 @@ app.get("/api/spaces/:id/events", async (req, res) => {
   res.json(events);
 });
 
-app.get("/api/spaces/:id/evm", async (req, res) => {
+app.get("/spaces/:id/evm", async (req, res) => {
   const id = req.params.id;
   const query = (await backendActor.get_all_evm_strategies_by_space_id({
     id: +id,
@@ -244,7 +243,7 @@ app.get("/api/spaces/:id/evm", async (req, res) => {
   res.json(events);
 });
 
-app.get("/api/spaces/:id/btc", async (req, res) => {
+app.get("/spaces/:id/btc", async (req, res) => {
   const id = req.params.id;
   const query = (await backendActor.get_all_btc_strategies_by_space_id({
     id: +id,
@@ -255,7 +254,7 @@ app.get("/api/spaces/:id/btc", async (req, res) => {
   res.json(events);
 });
 
-app.get("/api/proposals/:id", async (req, res) => {
+app.get("/proposals/:id", async (req, res) => {
   const id = req.params.id;
 
   const query = (await backendActor.query_proposal_by_id({
@@ -267,7 +266,7 @@ app.get("/api/proposals/:id", async (req, res) => {
   res.json(spaces);
 });
 
-app.get("/api/proposals/:id/votes", async (req, res) => {
+app.get("/proposals/:id/votes", async (req, res) => {
   const id = req.params.id;
 
   const query = (await backendActor.get_proposal_votes_by_proposal_id({
@@ -279,7 +278,7 @@ app.get("/api/proposals/:id/votes", async (req, res) => {
   res.json(spaces);
 });
 
-app.get("/api/proposals/:id/options", async (req, res) => {
+app.get("/proposals/:id/options", async (req, res) => {
   const id = req.params.id;
 
   const query = (await backendActor.get_proposal_options_by_proposal_id({
@@ -291,7 +290,7 @@ app.get("/api/proposals/:id/options", async (req, res) => {
   res.json(spaces);
 });
 
-app.get("/apievents", async (req, res) => {
+app.get("/events", async (req, res) => {
   const query = (await backendActor.get_all_space_events()) as QueryResponse;
 
   const events = parseJsonToModel<SpaceEvent[]>(query);
@@ -301,7 +300,7 @@ app.get("/apievents", async (req, res) => {
 
 // app.post()
 
-const port = 8000;
+const port = 3000;
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });

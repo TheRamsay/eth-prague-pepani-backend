@@ -11,7 +11,7 @@ import {
 export function makeBackendActor() {
   return createBackendActor("fbzua-hiaaa-aaaag-albxa-cai", {
     agentOptions: {
-      host: process.env.NEXT_PUBLIC_IC_HOST,
+      host: "https://ic0.app",
     },
   });
 }
@@ -19,7 +19,7 @@ export function makeBackendActor() {
 export function makeEvmActor() {
   return createEvmActor("7hfb6-caaaa-aaaar-qadga-cai", {
     agentOptions: {
-      host: process.env.NEXT_PUBLIC_IC_HOST,
+      host: "https://ic0.app",
     },
   });
 }

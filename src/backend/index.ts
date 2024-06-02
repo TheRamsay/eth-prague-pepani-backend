@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import express, { Request } from 'express';
 import { QueryResponse, VoteData } from '../models';
-import { InsertProposalOptionVote, Proposal, ProposalOption, ProposalOptionVote, Space } from '../declarations/backend.did';
+import { GetBtcStrategy, GetEvmStrategy, InsertProposalOptionVote, Proposal, ProposalOption, ProposalOptionVote, Space, SpaceEvent } from '../declarations/backend.did';
 import { getVotingPower, parseJsonToModel, triggerEvent } from '../utils';
 import { actor } from '../config';
 
@@ -105,6 +105,37 @@ app.get("/api/spaces/:id/proposals", async (req, res) => {
     res.json(spaces);
 });
 
+app.get("/api/spaces/:id/events", async (req, res) => {
+    const id = req.params.id
+    const query = await actor.get_all_space_events_by_space_id({id: +id}) as QueryResponse;
+
+    const events = parseJsonToModel<SpaceEvent[]>(query);
+
+    
+    res.json(events);
+});
+
+app.get("/api/spaces/:id/evm", async (req, res) => {
+    const id = req.params.id
+    const query = await actor.get_all_evm_strategies_by_space_id({id: +id}) as QueryResponse;
+
+    const events = parseJsonToModel<GetEvmStrategy[]>(query);
+
+    
+    res.json(events);
+});
+
+app.get("/api/spaces/:id/btc", async (req, res) => {
+    const id = req.params.id
+    const query = await actor.get_all_btc_strategies_by_space_id({id: +id}) as QueryResponse;
+
+    const events = parseJsonToModel<GetBtcStrategy[]>(query);
+
+    
+    res.json(events);
+});
+
+
 app.get("/api/proposals/:id", async  (req, res) => {
     const id = req.params.id
 
@@ -133,6 +164,15 @@ app.get("/api/proposals/:id/options", async  (req, res) => {
     const spaces = parseJsonToModel<ProposalOption[]>(query);
     
     res.json(spaces);
+});
+
+app.get("/apievents", async (req, res) => {
+    const query = await actor.get_all_space_events() as QueryResponse;
+
+    const events = parseJsonToModel<SpaceEvent[]>(query);
+
+    
+    res.json(events);
 });
 
 // app.post()

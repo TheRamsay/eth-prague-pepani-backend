@@ -1,50 +1,49 @@
 export type Strategy = {
-    name: string;
-    description: string;
-}
+  name: string;
+  description: string;
+};
 
 export type EvmStrategy = Strategy & {
-    chainId: number;
-    contractAddress: string;
-    configString: string;
-}
+  chainId: number;
+  contractAddress: string;
+  configString: string;
+};
 
 export type VoteMessage = {
-    voterAddress: string;
-    proposalId: number;
-    spaceId: number;
-    proposalOptionId: number;
-    blockHeight: string | null;
-}
-
+  address: string;
+  proposalId: number;
+  spaceId: number;
+  optionId: number;
+  blockHeight: string | null;
+};
 
 export type EventData = {
-    eventType: number;
-    webhookUrl: string;
-    payload: string;
-    spaceId: number;
-}
+  eventType: number;
+  webhookUrl: string;
+  payload: string;
+  spaceId: number;
+};
 
 export type InsertSpace = {
-    websiteLink : string,
-    name : string,
-    minVoteRole : number,
-    iconLink : string,
-    voteDuration : number,
-    voteDelay : number,
-    minVotePower : bigint,
-    quorum : number,
-  }
+  websiteLink: string;
+  name: string;
+  minVoteRole: number;
+  iconLink: string;
+  voteDuration: number;
+  voteDelay: number;
+  minVotePower: bigint;
+  quorum: number;
+};
 export type VoteData = {
-    signature: string;
-    message: VoteMessage;
-}
+  signature: string;
+  message: VoteMessage;
+};
 
 export type QueryResponse = {
-    Ok: string
+  Ok: string;
 };
 
 export type GetPowerRequest = {
-    voterAddress: string;
-    spaceId: number;
-}
+  address: string;
+  spaceId: number;
+};
